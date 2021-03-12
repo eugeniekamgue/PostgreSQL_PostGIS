@@ -1,1 +1,1 @@
-# MySQL_Scripts
+# PostgreSQL/PostGIS_Scripts
