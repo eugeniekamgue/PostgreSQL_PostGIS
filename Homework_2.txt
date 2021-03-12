@@ -1,0 +1,133 @@
+1) Write a program that creates a table named “superbowl_stats” . The table
+should have the same attributes as found in the filet, that is, the program should
+read the first row of the file and construct a table creation statement. All
+attributes, beside the primary key, can be of type varchar.
+
+import psycopg2
+try:
+    connection = psycopg2.connect(user="valerie",
+                                  password="2468",
+                                  host="127.0.0.1",
+                                  port="5432",
+                                  database="sie555_2021")
+except (Exception, psycopg2.Error) as error:
+    print("Error connecting to PostgreSQL", error)
+print("Database connected")
+# exit()
+try:
+    cur = connection.cursor()
+    create_newtable = """CREATE TABLE superbowl_data
+                   (ID INTEGER PRIMARY KEY,
+                    Date DATE,
+                    SB VARCHAR(20),
+                    Winner VARCHAR(45),
+                    Winner_Pts INTEGER,
+                    Loser VARCHAR(45),
+                    Loser_Pts INTEGER,
+                    MVP VARCHAR(45)
+                    );"""
+    cur.execute(create_newtable)
+    connection.commit()
+    print("Table created successfully in PostgreSQL")
+except (Exception, psycopg2.Error) as error:
+    print("Error while fetching data from PostgreSQL", error)
+finally:
+    # closing database connection
+    if connection:
+        cur.close()
+        connection.close()
+        print("PostgreSQL connection is closed")
+
+2) The next function of the program should read each record in the file, create and
+SQL insert statement and create a new tuple in Postgres.
+
+import psycopg2
+try:
+    connection = psycopg2.connect(user="valerie",
+                                  password="2468",
+                                  host="127.0.0.1",
+                                  port="5432",
+                                  database="sie555_2021")
+except (Exception, psycopg2.Error) as error:
+    print("Error connecting to PostgreSQL", error)
+print("Database connected")
+# exit()
+try:
+    cur1 = connection.cursor()
+    import csv
+    with open('superbowl_data.csv', 'r') as file:
+        reader = csv.reader(file)
+        next(reader)
+        for row in reader:
+            cur1.execute("""INSERT INTO superbowl_stats(ID, Date,SB, Winner, Winner_Pts, Loser, Loser_Pts, MVP) 
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+            row)
+    connection.commit()
+except (Exception, psycopg2.Error) as error:
+    print("Error while fetching data from PostgreSQL", error)
+finally:
+    # closing database connection
+    if connection:
+        cur1.close()
+        connection.close()
+        print("PostgreSQL connection is closed")
+
+3) Write a first query statement that selects all records in the table and displays the
+tuples, and a second query that find the team that won the Superbowl the most
+often.
+
+import psycopg2
+try:
+    connection = psycopg2.connect(user="valerie",
+                                  password="2468",
+                                  host="127.0.0.1",
+                                  port="5432",
+                                  database="sie555_2021")
+except (Exception, psycopg2.Error) as error:
+    print("Error connecting to PostgreSQL", error)
+print("Database connected")
+# exit()
+try:
+    cur = connection.cursor()
+    cur.execute("SELECT * from superbowl_stats")
+    rows = cur.fetchall()
+    header = ['ID', 'Date', 'SB', 'Winner', 'Winner_Pts', 'Loser', 'Loser_pts', 'MVP']
+    print("\nHere is the superbowl table:\n")
+    print(header)
+    for row in rows:
+        print(row)
+finally:
+    # closing database connection
+    if connection:
+        cur.close()
+        connection.close()
+        print("PostgreSQL connection is closed")
+
+
+import psycopg2
+try:
+    connection = psycopg2.connect(user="valerie",
+                                  password="2468",
+                                  host="127.0.0.1",
+                                  port="5432",
+                                  database="sie555_2021")
+except (Exception, psycopg2.Error) as error:
+    print("Error connecting to PostgreSQL", error)
+print("Database connected")
+# exit()
+try:
+    cur3 = connection.cursor()
+    cur3.execute("""SELECT winner, totalpts FROM (SELECT winner, SUM(winner_pts) AS totalpts FROM superbowl_stats
+                  GROUP BY winner) AS T  WHERE  totalpts=(SELECT MAX(totalpts) FROM (SELECT winner, SUM(winner_pts)
+                  AS totalpts FROM superbowl_stats GROUP BY winner) AS T)""")
+    result = cur3.fetchall()
+    print("\nThe team that won the most often\n")
+    for row in result:
+        print(row)
+finally:
+    # closing database connection
+    if connection:
+        cur3.close()
+        connection.close()
+        print("PostgreSQL connection is closed")
+
